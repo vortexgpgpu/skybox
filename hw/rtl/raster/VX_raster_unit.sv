@@ -206,8 +206,10 @@ module VX_raster_unit import VX_gpu_pkg::*; import VX_raster_pkg::*; #(
         .incr  (mem_unit_fire),
         .decr  (slice_arb_fire_out_cnt),
         .empty (no_pending_tiledata),
-        `UNUSED_PIN (size),
-        `UNUSED_PIN (full)
+        `UNUSED_PIN (alm_empty),
+        `UNUSED_PIN (full),
+        `UNUSED_PIN (alm_full),
+        `UNUSED_PIN (size)
     );
 
     wire has_pending_inputs = mem_unit_start

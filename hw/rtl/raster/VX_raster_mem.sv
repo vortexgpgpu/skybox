@@ -245,9 +245,11 @@ module VX_raster_mem import VX_gpu_pkg::*; import VX_raster_pkg::*; #(
         .reset (reset),
         .incr  (mem_req_fire && is_prim_id_req),
         .decr  (valid_out && ready_out),
+        `UNUSED_PIN (empty),
+        `UNUSED_PIN (alm_empty),
         .full  (pending_output_full),
-        `UNUSED_PIN (size),
-        `UNUSED_PIN (empty)
+        `UNUSED_PIN (alm_full),
+        `UNUSED_PIN (size)
     );
     assign mem_req_valid_qual = mem_req_valid && (~is_prim_id_req || ~pending_output_full);
 
