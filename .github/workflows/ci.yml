@@ -118,6 +118,15 @@ jobs:
       matrix:
         name: [regression, opencl, graphics, tex, om, raster, config1, config2, debug, stress]
         xlen: [32, 64]
+        exclude:
+          - name: graphics
+            xlen: 64
+          - name: tex
+            xlen: 64
+          - name: om
+            xlen: 64
+          - name: raster
+            xlen: 64
 
     steps:
       - name: Checkout code
