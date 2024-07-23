@@ -26,5 +26,7 @@ sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 100
 
 sudo apt-get install -y build-essential valgrind libstdc++6 binutils python uuid-dev ccache
 
+sudo apt-get install -y libboost-serialization-dev libpng-dev
+
 sudo apt-get upgrade -y
 sudo apt-get update -y
