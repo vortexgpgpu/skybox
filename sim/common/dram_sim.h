@@ -11,18 +11,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-`include "VX_define.vh"
+#include <stdint.h>
 
-interface VX_commit_sched_if ();
+namespace vortex {
 
-    wire [`NUM_WARPS-1:0] committed_warps;
+class DramSim {
+public:
+  typedef void (*ResponseCallback)(void *arg);
 
-    modport master (
-        output committed_warps
-    );
+  DramSim(int clock_ratio);
+  ~DramSim();
 
-    modport slave (
-        input committed_warps
-    );
+  void reset();
 
-endinterface
+  void tick();
+
+  bool send_request(bool is_write, uint64_t addr, int source_id, ResponseCallback callback, void* arg);
+
+private:
+	class Impl;
+	Impl* impl_;
+};
+
+}

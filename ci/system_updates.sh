@@ -14,12 +14,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-TOOLDIR=${TOOLDIR:=@TOOLDIR@}
+set -e
 
-export PATH=$TOOLDIR/verilator/bin:$PATH
+sudo apt-get update -y
 
-export SV2V_PATH=$TOOLDIR/sv2v
-export PATH=$SV2V_PATH/bin:$PATH
+sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+sudo apt-get update
+sudo apt-get install -y g++-11 gcc-11
+sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 100
+sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 100
 
-export YOSYS_PATH=$TOOLDIR/yosys
-export PATH=$YOSYS_PATH/bin:$PATH
+sudo apt-get install -y build-essential valgrind libstdc++6 binutils python uuid-dev ccache
+
+sudo apt-get upgrade -y
+sudo apt-get update -y

@@ -196,9 +196,15 @@ module VX_cache_bank #(
                         (replay_valid ? replay_addr :
                             (mem_rsp_valid ? mem_rsp_addr : core_req_addr));
 
-    assign data_sel[`CS_WORD_WIDTH-1:0] = (mem_rsp_valid || !WRITE_ENABLE) ? mem_rsp_data[`CS_WORD_WIDTH-1:0] : (replay_valid ? replay_data : core_req_data);
+    if (WRITE_ENABLE) begin
+        assign data_sel[`CS_WORD_WIDTH-1:0] = replay_valid ? replay_data : (mem_rsp_valid ? mem_rsp_data[`CS_WORD_WIDTH-1:0] : core_req_data);
+    end else begin
+        assign data_sel[`CS_WORD_WIDTH-1:0] = mem_rsp_data[`CS_WORD_WIDTH-1:0];
+        `UNUSED_VAR (core_req_data)
+        `UNUSED_VAR (replay_data)
+    end
     for (genvar i = `CS_WORD_WIDTH; i < `CS_LINE_WIDTH; ++i) begin
-        assign data_sel[i] = mem_rsp_data[i];
+        assign data_sel[i] = mem_rsp_data[i]; // only the memory response fills the upper words od data_sel
     end
 
     VX_pipe_register #(
@@ -311,9 +317,9 @@ module VX_cache_bank #(
 
     // detect BRAM's read-during-write hazard
     assign rdw_hazard_st0 = do_fill_st0; // after a fill
-    always @(posedge clk) begin
+    always @(posedge clk) begin // after a write to same address
         rdw_hazard_st1 <= (do_creq_rd_st0 && do_write_hit_st1 && (addr_st0 == addr_st1))
-                       && ~rdw_hazard_st1; // after a write to same address
+                       && ~rdw_hazard_st1; // invalidate if pipeline stalled to avoid repeats
     end
 
     wire [`CS_WORD_WIDTH-1:0] write_data_st1 = data_st1[`CS_WORD_WIDTH-1:0];
@@ -351,7 +357,8 @@ module VX_cache_bank #(
         .read_data  (read_data_st1)
     );
 
-    wire [MSHR_SIZE-1:0] mshr_matches_st0;
+    wire [MSHR_SIZE-1:0] mshr_lookup_pending_st0;
+    wire [MSHR_SIZE-1:0] mshr_lookup_rw_st0;
     wire mshr_allocate_st0 = valid_st0 && is_creq_st0 && ~pipe_stall;
     wire mshr_lookup_st0   = mshr_allocate_st0;
     wire mshr_finalize_st1 = valid_st1 && is_creq_st1 && ~pipe_stall;
@@ -364,9 +371,11 @@ module VX_cache_bank #(
         .reset (reset),
         .incr  (core_req_fire),
         .decr  (replay_fire || (mshr_finalize_st1 && mshr_release_st1)),
+        `UNUSED_PIN (empty),
+        `UNUSED_PIN (alm_empty),
         .full  (mshr_alm_full),
-        `UNUSED_PIN (size),
-        `UNUSED_PIN (empty)
+        `UNUSED_PIN (alm_full),
+        `UNUSED_PIN (size)
     );
 
     `RESET_RELAY (mshr_reset, reset);
@@ -412,7 +421,8 @@ module VX_cache_bank #(
         // lookup
         .lookup_valid   (mshr_lookup_st0),
         .lookup_addr    (addr_st0),
-        .lookup_matches (mshr_matches_st0),
+        .lookup_pending (mshr_lookup_pending_st0),
+        .lookup_rw      (mshr_lookup_rw_st0),
 
         // finalize
         .finalize_valid (mshr_finalize_st1),
@@ -422,10 +432,12 @@ module VX_cache_bank #(
         .finalize_prev  (mshr_prev_st1)
     );
 
-    // ignore allocated id from mshr matches
+    // check if there are pending requests to same line in the MSHR
     wire [MSHR_SIZE-1:0] lookup_matches;
     for (genvar i = 0; i < MSHR_SIZE; ++i) begin
-        assign lookup_matches[i] = (i != mshr_alloc_id_st0) && mshr_matches_st0[i];
+        assign lookup_matches[i] = mshr_lookup_pending_st0[i]
+                                && (i != mshr_alloc_id_st0) // exclude current mshr id
+                                && ~mshr_lookup_rw_st0[i];  // exclude write requests
     end
     assign mshr_pending_st0 = (| lookup_matches);
 
