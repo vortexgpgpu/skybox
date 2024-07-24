@@ -44,7 +44,7 @@ module VX_tex_unit import VX_gpu_pkg::*; import VX_tex_pkg::*; #(
     tex_dcrs_t tex_dcrs;
 
     VX_tex_dcr #(
-        .INSTANCE_ID (INSTANCE_ID),
+        .INSTANCE_ID ($sformatf("%s-dcr", INSTANCE_ID)),
         .NUM_STAGES  (`VX_TEX_STAGE_COUNT)
     ) tex_dcr (
         .clk        (clk),
@@ -103,7 +103,7 @@ module VX_tex_unit import VX_gpu_pkg::*; import VX_tex_pkg::*; #(
     `RESET_RELAY (addr_reset, reset);
 
     VX_tex_addr #(
-        .INSTANCE_ID (INSTANCE_ID),
+        .INSTANCE_ID ($sformatf("%s-addr", INSTANCE_ID)),
         .REQ_INFOW   (TAG_WIDTH + `TEX_FORMAT_BITS),
         .NUM_LANES   (NUM_LANES)
     ) tex_addr (
@@ -146,7 +146,7 @@ module VX_tex_unit import VX_gpu_pkg::*; import VX_tex_pkg::*; #(
     `RESET_RELAY (mem_reset, reset);
 
     VX_tex_mem #(
-        .INSTANCE_ID (INSTANCE_ID),
+        .INSTANCE_ID ($sformatf("%s-mem", INSTANCE_ID)),
         .REQ_INFOW   (TAG_WIDTH + `TEX_FORMAT_BITS + BLEND_FRAC_W),
         .NUM_LANES   (NUM_LANES)
     ) tex_mem (
@@ -183,7 +183,7 @@ module VX_tex_unit import VX_gpu_pkg::*; import VX_tex_pkg::*; #(
     `RESET_RELAY (sample_reset, reset);
 
     VX_tex_sampler #(
-        .INSTANCE_ID (INSTANCE_ID),
+        .INSTANCE_ID ($sformatf("%s-sampler", INSTANCE_ID)),
         .REQ_INFOW   (TAG_WIDTH),
         .NUM_LANES   (NUM_LANES)
     ) tex_sampler (

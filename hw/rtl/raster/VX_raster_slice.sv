@@ -1,12 +1,12 @@
 //!/bin/bash
 
 // Copyright © 2019-2023
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -39,13 +39,13 @@ module VX_raster_slice import VX_raster_pkg::*; #(
     input wire [`VX_RASTER_DIM_BITS-1:0]            xloc_in,
     input wire [`VX_RASTER_DIM_BITS-1:0]            yloc_in,
     input wire [`VX_RASTER_DIM_BITS-1:0]            xmin_in,
-    input wire [`VX_RASTER_DIM_BITS-1:0]            xmax_in,  
-    input wire [`VX_RASTER_DIM_BITS-1:0]            ymin_in,  
+    input wire [`VX_RASTER_DIM_BITS-1:0]            xmax_in,
+    input wire [`VX_RASTER_DIM_BITS-1:0]            ymin_in,
     input wire [`VX_RASTER_DIM_BITS-1:0]            ymax_in,
     input wire [`VX_RASTER_PID_BITS-1:0]            pid_in,
-    input wire [2:0][2:0][`RASTER_DATA_BITS-1:0]    edges_in,    
-    input wire [2:0][`RASTER_DATA_BITS-1:0]         extents_in,    
-    output wire                                     ready_in, 
+    input wire [2:0][2:0][`RASTER_DATA_BITS-1:0]    edges_in,
+    input wire [2:0][`RASTER_DATA_BITS-1:0]         extents_in,
+    output wire                                     ready_in,
 
     // Outputs
     output wire                                     valid_out,
@@ -66,15 +66,15 @@ module VX_raster_slice import VX_raster_pkg::*; #(
     wire [`VX_RASTER_PID_BITS-1:0] block_pid;
     wire [2:0][2:0][`RASTER_DATA_BITS-1:0] block_edges;
     wire                        block_ready;
-    
+
     VX_raster_te #(
-        .INSTANCE_ID   (INSTANCE_ID),
+        .INSTANCE_ID   ($sformatf("%s-te", INSTANCE_ID)),
         .TILE_LOGSIZE  (TILE_LOGSIZE),
         .BLOCK_LOGSIZE (BLOCK_LOGSIZE)
     ) tile_evaluator (
         .clk        (clk),
         .reset      (reset),
-        
+
         .valid_in   (valid_in),
         .xloc_in    (xloc_in),
         .yloc_in    (yloc_in),
@@ -87,7 +87,7 @@ module VX_raster_slice import VX_raster_pkg::*; #(
         .xloc_out   (block_xloc),
         .yloc_out   (block_yloc),
         .pid_out    (block_pid),
-        .edges_out  (block_edges),  
+        .edges_out  (block_edges),
         .ready_out  (block_ready)
     );
 
@@ -113,14 +113,14 @@ module VX_raster_slice import VX_raster_pkg::*; #(
     );
 
     VX_raster_be #(
-        .INSTANCE_ID     (INSTANCE_ID),
+        .INSTANCE_ID     ($sformatf("%s-be", INSTANCE_ID)),
         .BLOCK_LOGSIZE   (BLOCK_LOGSIZE),
         .OUTPUT_QUADS    (OUTPUT_QUADS),
         .QUAD_FIFO_DEPTH (QUAD_FIFO_DEPTH)
     ) block_evaluator (
         .clk        (clk),
         .reset      (reset),
-        
+
         .dcrs       (dcrs),
 
         .valid_in   (block_valid_b),
@@ -128,21 +128,21 @@ module VX_raster_slice import VX_raster_pkg::*; #(
         .yloc_in    (block_yloc_b),
         .xmin_in    (xmin_in),
         .xmax_in    (xmax_in),
-        .ymin_in    (ymin_in), 
+        .ymin_in    (ymin_in),
         .ymax_in    (ymax_in),
         .pid_in     (block_pid_b),
         .edges_in   (block_edges_b),
         .ready_in   (block_ready_b),
-        
+
         .valid_out  (valid_out),
         .stamps_out (stamps_out),
         .busy_out   (be_busy),
         .ready_out  (ready_out)
     );
 
-    assign busy_out = ~ready_in 
+    assign busy_out = ~ready_in
                    || block_valid
-                   || block_valid_b 
+                   || block_valid_b
                    || be_busy;
 
 endmodule

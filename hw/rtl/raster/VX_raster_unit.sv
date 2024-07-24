@@ -59,7 +59,7 @@ module VX_raster_unit import VX_gpu_pkg::*; import VX_raster_pkg::*; #(
     raster_dcrs_t raster_dcrs;
 
     VX_raster_dcr #(
-        .INSTANCE_ID (INSTANCE_ID)
+        .INSTANCE_ID ($sformatf("%s-dcr", INSTANCE_ID))
     ) raster_dcr (
         .clk        (clk),
         .reset      (reset),
@@ -91,7 +91,7 @@ module VX_raster_unit import VX_gpu_pkg::*; import VX_raster_pkg::*; #(
 
     // Memory unit
     VX_raster_mem #(
-        .INSTANCE_ID   (INSTANCE_ID),
+        .INSTANCE_ID   ($sformatf("%s-mem", INSTANCE_ID)),
         .INSTANCE_IDX  (INSTANCE_IDX),
         .NUM_INSTANCES (NUM_INSTANCES),
         .TILE_LOGSIZE  (TILE_LOGSIZE),
@@ -230,7 +230,7 @@ module VX_raster_unit import VX_gpu_pkg::*; import VX_raster_pkg::*; #(
     wire [NUM_SLICES-1:0] slice_valid_out;
 
     // Generate all slices
-    for (genvar i = 0; i < NUM_SLICES; ++i) begin
+    for (genvar slice_id = 0; slice_id < NUM_SLICES; ++slice_id) begin
         wire [`VX_RASTER_DIM_BITS-1:0] slice_xloc_in;
         wire [`VX_RASTER_DIM_BITS-1:0] slice_yloc_in;
         wire [`VX_RASTER_PID_BITS-1:0] slice_pid_in;
@@ -238,14 +238,14 @@ module VX_raster_unit import VX_gpu_pkg::*; import VX_raster_pkg::*; #(
         wire [2:0][`RASTER_DATA_BITS-1:0] slice_extents_in;
         wire slice_ready_in;
 
-        assign slice_valid_in[i] = slice_arb_valid_out[i];
-        assign {slice_xloc_in, slice_yloc_in, slice_pid_in, slice_edges_in, slice_extents_in} = slice_arb_data_out[i];
-        assign slice_arb_ready_out[i] = slice_ready_in;
+        assign slice_valid_in[slice_id] = slice_arb_valid_out[slice_id];
+        assign {slice_xloc_in, slice_yloc_in, slice_pid_in, slice_edges_in, slice_extents_in} = slice_arb_data_out[slice_id];
+        assign slice_arb_ready_out[slice_id] = slice_ready_in;
 
         `RESET_RELAY (slice_reset, reset);
 
         VX_raster_slice #(
-            .INSTANCE_ID     (INSTANCE_ID),
+            .INSTANCE_ID     ($sformatf("%s-slice%d", INSTANCE_ID, slice_id)),
             .TILE_LOGSIZE    (TILE_LOGSIZE),
             .BLOCK_LOGSIZE   (BLOCK_LOGSIZE),
             .OUTPUT_QUADS    (OUTPUT_QUADS),
@@ -256,7 +256,7 @@ module VX_raster_unit import VX_gpu_pkg::*; import VX_raster_pkg::*; #(
 
             .dcrs       (raster_dcrs),
 
-            .valid_in   (slice_valid_in[i]),
+            .valid_in   (slice_valid_in[slice_id]),
             .xloc_in    (slice_xloc_in),
             .yloc_in    (slice_yloc_in),
             .xmin_in    (raster_dcrs.dst_xmin),
@@ -268,20 +268,20 @@ module VX_raster_unit import VX_gpu_pkg::*; import VX_raster_pkg::*; #(
             .extents_in (slice_extents_in),
             .ready_in   (slice_ready_in),
 
-            .valid_out  (slice_valid_out[i]),
-            .stamps_out (slice_raster_bus_if[i].req_data.stamps),
-            .busy_out   (slice_busy_out[i]),
-            .ready_out  (slice_raster_bus_if[i].req_ready)
+            .valid_out  (slice_valid_out[slice_id]),
+            .stamps_out (slice_raster_bus_if[slice_id].req_data.stamps),
+            .busy_out   (slice_busy_out[slice_id]),
+            .ready_out  (slice_raster_bus_if[slice_id].req_ready)
         );
 
-        assign slice_raster_bus_if[i].req_data.done = running
-                                                   && ~has_pending_inputs
-                                                   && ~(| slice_valid_in)
-                                                   && ~(| slice_busy_out)
-                                                   && ~(| slice_valid_out);
+        assign slice_raster_bus_if[slice_id].req_data.done = running
+                                                          && ~has_pending_inputs
+                                                          && ~(| slice_valid_in)
+                                                          && ~(| slice_busy_out)
+                                                          && ~(| slice_valid_out);
 
-        assign slice_raster_bus_if[i].req_valid = slice_valid_out[i]
-                                               || slice_raster_bus_if[i].req_data.done;
+        assign slice_raster_bus_if[slice_id].req_valid = slice_valid_out[slice_id]
+                                                     || slice_raster_bus_if[slice_id].req_data.done;
     end
 
     `RESET_RELAY (raster_arb_reset, reset);
