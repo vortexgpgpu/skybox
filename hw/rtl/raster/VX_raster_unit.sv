@@ -230,7 +230,7 @@ module VX_raster_unit import VX_gpu_pkg::*; import VX_raster_pkg::*; #(
     wire [NUM_SLICES-1:0] slice_valid_out;
 
     // Generate all slices
-    for (genvar slice_id = 0; slice_id < NUM_SLICES; ++slice_id) begin
+    for (genvar slice_id = 0; slice_id < NUM_SLICES; ++slice_id) begin: raster_slices
         wire [`VX_RASTER_DIM_BITS-1:0] slice_xloc_in;
         wire [`VX_RASTER_DIM_BITS-1:0] slice_yloc_in;
         wire [`VX_RASTER_PID_BITS-1:0] slice_pid_in;
