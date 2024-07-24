@@ -170,7 +170,7 @@ module Vortex import VX_gpu_pkg::*; (
 
             .dcr_bus_if         (cluster_dcr_bus_if),
 
-            .mem_bus_if         (per_cluster_mem_bus_if[cluster_id]),
+            .mem_bus2_if        (per_cluster_mem_bus_if[cluster_id]),
 
             .busy               (per_cluster_busy[cluster_id])
         );
