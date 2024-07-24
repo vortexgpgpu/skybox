@@ -53,8 +53,8 @@ module VX_pending_size #(
                 full_r      <= 0;
                 size_r      <= '0;
             end else begin
-                `ASSERT((incr >= decr) || (size_n >= size_r), ("runtime error: counter overflow"));
-                `ASSERT((incr <= decr) || (size_n <= size_r), ("runtime error: counter underflow"));
+                `ASSERT((SIZEW'(incr) <= SIZEW'(decr)) || (size_r <= (SIZEW'(SIZE)-(SIZEW'(incr)-SIZEW'(decr)))), ("runtime error: counter overflow"));
+                `ASSERT((SIZEW'(incr) >= SIZEW'(decr)) || (size_r >= (SIZEW'(SIZE)-(SIZEW'(decr)-SIZEW'(incr)))), ("runtime error: counter underflow"));
                 size_r      <= size_n;
                 empty_r     <= (size_n == SIZEW'(0));
                 alm_empty_r <= (size_n == SIZEW'(ALM_EMPTY));

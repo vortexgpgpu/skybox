@@ -298,7 +298,8 @@ module VX_om_unit import VX_gpu_pkg::*; import VX_om_pkg::*; #(
 
     wire write_req_canceled;
 
-    // to prevent potential deadlocks,
+    // We need to ensure that read responses can be processed without stalls
+    // otherwise we get into potential read/write deadlock.
     // ensure the memory scheduler's queue doesn't fill up
     VX_pending_size #(
         .SIZE (`OM_MEM_QUEUE_SIZE)

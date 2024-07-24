@@ -55,7 +55,7 @@ module VX_mem_scheduler #(
     input wire [TAG_WIDTH-1:0]              core_req_tag,
     output wire                             core_req_ready,
     output wire                             core_req_empty,
-    output wire                             core_req_sent,
+    output wire                             core_write_notify,
 
     // Core response
     output wire                             core_rsp_valid,
@@ -189,7 +189,7 @@ module VX_mem_scheduler #(
     assign core_req_empty = !reqq_valid && ibuf_empty;
 
     // notify request submisison
-    assign core_req_sent = reqq_valid && reqq_ready;
+    assign core_write_notify = reqq_valid && reqq_ready && reqq_rw;
 
     // Index buffer ///////////////////////////////////////////////////////////
 

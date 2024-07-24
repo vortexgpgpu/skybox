@@ -230,7 +230,7 @@ module VX_om_mem import VX_gpu_pkg::*; import VX_om_pkg::*; #(
         .core_req_tag   (mreq_tag_r),
         `UNUSED_PIN (core_req_empty),
         .core_req_ready (mreq_ready_r),
-        .core_req_sent  (write_notify),
+        .core_write_notify  (write_notify),
 
         // Output response
         .core_rsp_valid (mrsp_valid),

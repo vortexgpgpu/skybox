@@ -502,7 +502,7 @@
 
 // OM Memory Queue Size
 `ifndef OM_MEM_QUEUE_SIZE
-`define OM_MEM_QUEUE_SIZE (2 * (`NUM_THREADS / `NUM_SFU_LANES))
+`define OM_MEM_QUEUE_SIZE 4
 `endif
 
 // Icache Configurable Knobs //////////////////////////////////////////////////
