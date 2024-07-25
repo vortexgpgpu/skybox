@@ -89,8 +89,8 @@ regression()
 {
     echo "begin regression tests..."
 
-    make -C runtime/simx
-    make -C runtime/rtlsim
+    CONFIGS="-DEXT_GFX_ENABLE" make -C runtime/simx
+    CONFIGS="-DEXT_GFX_ENABLE" make -C runtime/rtlsim
 
     make -C tests/regression run-simx
     make -C tests/regression run-rtlsim
