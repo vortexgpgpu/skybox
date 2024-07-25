@@ -84,7 +84,7 @@ module VX_raster_csr import VX_raster_pkg::*; #(
 
     for (genvar i = 0; i < NUM_LANES; ++i) begin
         wire [`VX_CSR_RASTER_COUNT-1:0][31:0] indexable_rdata = rdata[raster_csr_if.read_pid * NUM_LANES + i];
-        assign raster_csr_if.read_data[i] = indexable_rdata[csr_addr];
+        assign raster_csr_if.read_data[i] = `XLEN'(indexable_rdata[csr_addr]);
     end
 
     `UNUSED_VAR (write_uuid)
