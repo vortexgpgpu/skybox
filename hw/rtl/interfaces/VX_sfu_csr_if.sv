@@ -24,7 +24,7 @@ interface VX_sfu_csr_if  #(
     wire [NUM_LANES-1:0]        read_tmask;
     wire [PID_WIDTH-1:0]        read_pid;
     wire [`VX_CSR_ADDR_BITS-1:0] read_addr;
-    wire [NUM_LANES-1:0][31:0]  read_data;
+    wire [NUM_LANES-1:0][`XLEN-1:0] read_data;
 
     wire                        write_enable;
     wire [`UUID_WIDTH-1:0]      write_uuid;
@@ -32,7 +32,7 @@ interface VX_sfu_csr_if  #(
     wire [NUM_LANES-1:0]        write_tmask;
     wire [PID_WIDTH-1:0]        write_pid;
     wire [`VX_CSR_ADDR_BITS-1:0] write_addr;
-    wire [NUM_LANES-1:0][31:0]  write_data;
+    wire [NUM_LANES-1:0][`XLEN-1:0] write_data;
 
     modport master (
         output read_enable,
