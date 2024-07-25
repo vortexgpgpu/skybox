@@ -139,7 +139,7 @@ module VX_tex_mem import VX_gpu_pkg::*; import VX_tex_pkg::*; #(
         .core_req_mask  (mem_req_mask),
         .core_req_byteen(mem_req_byteen),
         .core_req_addr  (mem_req_addr),
-        .core_req_atype (0),
+        .core_req_atype ((TEX_MEM_REQS*`ADDR_TYPE_WIDTH)'(0)),
         `UNUSED_PIN (core_req_data),
         .core_req_tag   (mem_req_tag),
         .core_req_ready (mem_req_ready),
