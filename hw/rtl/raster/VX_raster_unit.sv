@@ -48,6 +48,8 @@ module VX_raster_unit import VX_gpu_pkg::*; import VX_raster_pkg::*; #(
 );
     localparam EDGE_FUNC_LATENCY = `LATENCY_IMUL;
     localparam SLICES_BITS = `CLOG2(NUM_SLICES+1);
+    localparam START_DELAY = 16; // delay startup to allow for the reset signal to propagate the module hierarchy
+    localparam START_DELAY_W = `CLOG2(START_DELAY+1);
 
     // A primitive data contains (xloc, yloc, pid, edges, extents)
     localparam PRIM_DATA_WIDTH = 2 * `VX_RASTER_DIM_BITS + `VX_RASTER_PID_BITS + 9 * `RASTER_DATA_BITS + 3 * `RASTER_DATA_BITS;
@@ -76,18 +78,38 @@ module VX_raster_unit import VX_gpu_pkg::*; import VX_raster_pkg::*; #(
     wire [`VX_RASTER_PID_BITS-1:0] mem_pid;
 
     // Memory unit status
-    reg running;
     wire mem_unit_busy;
     wire mem_unit_valid;
     wire mem_unit_ready;
 
-    `RESET_RELAY (mem_reset, reset);
-
     // Generate start pulse
+    reg [START_DELAY_W-1:0] start_cnt;
+    reg mem_unit_start;
+    reg start_pending;
+    reg running;
     always @(posedge clk) begin
-        running <= ~mem_reset;
+        if (reset) begin
+            start_cnt <= '0;
+            mem_unit_start <= 0;
+            start_pending <= 0;
+        end else begin
+            if (~running && ~reset) begin
+                start_cnt  <= START_DELAY_W'(START_DELAY);
+                start_pending <= 1'b1;
+            end else if (start_cnt != '0) begin
+                start_cnt <= start_cnt - 1;
+            end
+            if (start_cnt == START_DELAY_W'(1'b1)) begin
+                mem_unit_start <= 1;
+                start_pending <= 0;
+            end else begin
+                mem_unit_start <= 0;
+            end
+        end
+        running <= ~reset;
     end
-    wire mem_unit_start = ~mem_reset && ~running;
+
+    `RESET_RELAY (mem_reset, reset);
 
     // Memory unit
     VX_raster_mem #(
@@ -212,7 +234,8 @@ module VX_raster_unit import VX_gpu_pkg::*; import VX_raster_pkg::*; #(
         `UNUSED_PIN (size)
     );
 
-    wire has_pending_inputs = mem_unit_start
+    wire has_pending_inputs = start_pending
+                           || mem_unit_start
                            || mem_unit_busy
                            || mem_unit_valid
                            || ~no_pending_tiledata;
@@ -284,8 +307,6 @@ module VX_raster_unit import VX_gpu_pkg::*; import VX_raster_pkg::*; #(
                                                      || slice_raster_bus_if[slice_id].req_data.done;
     end
 
-    `RESET_RELAY (raster_arb_reset, reset);
-
     VX_raster_arb #(
         .NUM_INPUTS (NUM_SLICES),
         .NUM_LANES  (OUTPUT_QUADS),
@@ -293,7 +314,7 @@ module VX_raster_unit import VX_gpu_pkg::*; import VX_raster_pkg::*; #(
         .OUT_BUF    (3) // external bus should be registered
     ) raster_arb (
         .clk        (clk),
-        .reset      (raster_arb_reset),
+        .reset      (reset),
         .bus_in_if  (slice_raster_bus_if),
         .bus_out_if (raster_bus_tmp_if)
     );
