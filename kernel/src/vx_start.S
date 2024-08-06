@@ -51,12 +51,10 @@ _start:
   # la t0, trap_entry
   # csrw mtvec, t0
 
-  # register global termination functions
-  la    a0, __libc_fini_array
-  call  atexit
-
+#ifdef HAVE_INITFINI_ARRAY
   # run global initialization functions
   call  __libc_init_array
+#endif
 
   # call main program routine
   call  main

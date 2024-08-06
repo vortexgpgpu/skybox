@@ -115,8 +115,9 @@ jobs:
     runs-on: ubuntu-20.04
     needs: build
     strategy:
+      fail-fast: false
       matrix:
-        name: [regression, opencl, graphics, tex, om, raster, config1, config2, debug, stress]
+        name: [regression, opencl, graphics, tex, om, raster, cache, config1, config2, debug, stress]
         xlen: [32, 64]
 
     steps:
@@ -165,3 +166,11 @@ jobs:
           else
             ./ci/regression.sh --${{ matrix.name }}
           fi
+
+  complete:
+    runs-on: ubuntu-20.04
+    needs: tests
+
+    steps:
+      - name: Check Completion
+        run: echo "All matrix jobs passed"

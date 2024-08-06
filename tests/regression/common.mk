@@ -37,7 +37,7 @@ VX_CP  = $(LLVM_VORTEX)/bin/llvm-objcopy
 
 VX_CFLAGS += -O3 -mcmodel=medany -fno-rtti -fno-exceptions -nostartfiles -nostdlib -fdata-sections -ffunction-sections
 VX_CFLAGS += -I$(VORTEX_KN_PATH)/include -I$(ROOT_DIR)/hw
-VX_CFLAGS += -DXLEN_$(XLEN)
+VX_CFLAGS += -DXLEN_$(XLEN) -DLLVM_VORTEX
 VX_CFLAGS += -DNDEBUG
 
 VX_LIBS += -L$(LIBC_VORTEX)/lib -lm -lc
@@ -45,14 +45,14 @@ VX_LIBS += -L$(LIBC_VORTEX)/lib -lm -lc
 VX_LIBS += $(LIBCRT_VORTEX)/lib/baremetal/libclang_rt.builtins-riscv$(XLEN).a
 #VX_LIBS += -lgcc
 
-VX_LDFLAGS += -Wl,-Bstatic,--gc-sections,-T,$(VORTEX_KN_PATH)/scripts/link$(XLEN).ld,--defsym=STARTUP_ADDR=$(STARTUP_ADDR) $(ROOT_DIR)/kernel/libvortex.a $(VX_LIBS)
+VX_LDFLAGS += -Wl,-Bstatic,--gc-sections,-T,$(VORTEX_KN_PATH)/scripts/link$(XLEN).ld,--defsym=STARTUP_ADDR=$(STARTUP_ADDR),--allow-multiple-definition $(ROOT_DIR)/kernel/libvortex.a $(VX_LIBS)
 
 CXXFLAGS += -std=c++11 -Wall -Wextra -pedantic -Wfatal-errors
 CXXFLAGS += -I$(VORTEX_RT_PATH)/include -I$(ROOT_DIR)/hw
 
 LDFLAGS += -L$(ROOT_DIR)/runtime -lvortex
 
-# Debugigng
+# Debugging
 ifdef DEBUG
 	CXXFLAGS += -g -O0
 else

@@ -1,10 +1,10 @@
 // Copyright © 2019-2023
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,11 +15,11 @@
 
 using namespace vortex;
 
-Cluster::Cluster(const SimContext& ctx, 
+Cluster::Cluster(const SimContext& ctx,
                  uint32_t cluster_id,
-                 ProcessorImpl* processor, 
-                 const Arch &arch, 
-                 const DCRS &dcrs) 
+                 ProcessorImpl* processor,
+                 const Arch &arch,
+                 const DCRS &dcrs)
   : SimObject(ctx, "cluster")
   , mem_req_port(this)
   , mem_rsp_port(this)
@@ -36,26 +36,26 @@ Cluster::Cluster(const SimContext& ctx,
 
   uint32_t sockets_per_cluster = sockets_.size();
 
-  // create raster units    
+  // create raster units
   for (uint32_t i = 0; i < NUM_RASTER_UNITS; ++i) {
     snprintf(sname, 100, "cluster%d-raster_unit%d", cluster_id, i);
-    uint32_t raster_idx = cluster_id * NUM_RASTER_UNITS + i;      
-    uint32_t raster_count = arch.num_clusters() * NUM_RASTER_UNITS;     
+    uint32_t raster_idx = cluster_id * NUM_RASTER_UNITS + i;
+    uint32_t raster_count = arch.num_clusters() * NUM_RASTER_UNITS;
     raster_units_.at(i) = RasterUnit::Create(sname, raster_idx, raster_count, arch, dcrs.raster_dcrs, RasterUnit::Config{
-      RASTER_TILE_LOGSIZE, 
+      RASTER_TILE_LOGSIZE,
       RASTER_BLOCK_LOGSIZE
     });
   }
 
   // create om units
   for (uint32_t i = 0; i < NUM_OM_UNITS; ++i) {
-    snprintf(sname, 100, "cluster%d-om_unit%d", cluster_id, i);      
+    snprintf(sname, 100, "cluster%d-om_unit%d", cluster_id, i);
     om_units_.at(i) = OMUnit::Create(sname, arch, dcrs.om_dcrs);
   }
 
   // create tex units
   for (uint32_t i = 0; i < NUM_TEX_UNITS; ++i) {
-    snprintf(sname, 100, "cluster%d-tex_unit%d", cluster_id, i);      
+    snprintf(sname, 100, "cluster%d-tex_unit%d", cluster_id, i);
     tex_units_.at(i) = TexUnit::Create(sname, arch, dcrs.tex_dcrs, TexUnit::Config{
       2, // address latency
       6, // sampler latency
@@ -93,12 +93,12 @@ Cluster::Cluster(const SimContext& ctx,
 
     uint32_t socket_id = cluster_id * sockets_per_cluster + i;
 
-    auto socket = Socket::Create(socket_id, 
-                                 this, 
-                                 arch, 
-                                 dcrs, 
-                                 raster_units, 
-                                 tex_units, 
+    auto socket = Socket::Create(socket_id,
+                                 this,
+                                 arch,
+                                 dcrs,
+                                 raster_units,
+                                 tex_units,
                                  om_units);
 
     socket->icache_mem_req_port.bind(&icache_switch->ReqIn.at(i));
@@ -111,7 +111,7 @@ Cluster::Cluster(const SimContext& ctx,
   }
 
   // Create l2cache
-  
+
   snprintf(sname, 100, "cluster%d-l2cache", cluster_id);
   l2cache_ = CacheSim::Create(sname, CacheSim::Config{
     !L2_ENABLED,
@@ -120,9 +120,9 @@ Cluster::Cluster(const SimContext& ctx,
     log2ceil(L1_LINE_SIZE), // W
     log2ceil(L2_NUM_WAYS),  // A
     log2ceil(L2_NUM_BANKS), // B
-    XLEN,                   // address bits  
+    XLEN,                   // address bits
     1,                      // number of ports
-    5,                      // request size 
+    5,                      // request size
     true,                   // write-through
     false,                  // write response
     L2_MSHR_SIZE,           // mshr size
@@ -179,7 +179,7 @@ Cluster::Cluster(const SimContext& ctx,
     log2ceil(RCACHE_NUM_BANKS), // B
     XLEN,                   // address bits
     1,                      // number of ports
-    RCACHE_NUM_BANKS,       // number of inputs 
+    RCACHE_NUM_BANKS,       // number of inputs
     true,                   // write-through
     false,                  // write response
     RCACHE_MSHR_SIZE,       // mshr
@@ -188,7 +188,7 @@ Cluster::Cluster(const SimContext& ctx,
 
   rcaches_->MemReqPort.bind(&l2cache_->CoreReqPorts.at(4));
   l2cache_->CoreRspPorts.at(4).bind(&rcaches_->MemRspPort);
-  
+
   for (uint32_t i = 0; i < NUM_RASTER_UNITS; ++i) {
     raster_units_.at(i)->MemReqs.bind(&rcaches_->CoreReqPorts.at(i).at(0));
     rcaches_->CoreRspPorts.at(i).at(0).bind(&raster_units_.at(i)->MemRsps);
@@ -228,7 +228,7 @@ Cluster::~Cluster() {
   //--
 }
 
-void Cluster::reset() {  
+void Cluster::reset() {
   for (auto& barrier : barriers_) {
     barrier.reset();
   }

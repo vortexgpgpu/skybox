@@ -47,7 +47,7 @@ Socket::Socket(const SimContext& ctx,
     XLEN,                   // address bits
     1,                      // number of ports
     1,                      // number of inputs
-    false,                  // write-through
+    false,                  // write-back
     false,                  // write response
     (uint8_t)arch.num_warps(), // mshr size
     2,                      // pipeline latency
@@ -67,7 +67,7 @@ Socket::Socket(const SimContext& ctx,
     XLEN,                   // address bits
     1,                      // number of ports
     DCACHE_NUM_REQS,        // number of inputs
-    true,                   // write-through
+    DCACHE_WRITEBACK,       // write-back
     false,                  // write response
     DCACHE_MSHR_SIZE,       // mshr size
     2,                      // pipeline latency

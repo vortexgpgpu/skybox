@@ -35,7 +35,6 @@ module VX_raster_csr import VX_raster_pkg::*; #(
     VX_sfu_csr_if.slave raster_csr_if
 );
     `UNUSED_PARAM (CORE_ID)
-    `UNUSED_VAR (reset)
     localparam NUM_CSRS_BITS = `CLOG2(`VX_CSR_RASTER_COUNT);
 
     raster_csrs_t [`NUM_THREADS-1:0] wdata;
@@ -52,9 +51,10 @@ module VX_raster_csr import VX_raster_pkg::*; #(
             .LUTRAM (1)
         ) stamp_store (
             .clk   (clk),
+            .reset (reset),
             .read  (1'b1),
-            .write  (write[i]),
-            `UNUSED_PIN (wren),
+            .write (write[i]),
+            .wren  (1'b1),
             .waddr (waddr),
             .wdata (wdata[i]),
             .raddr (raddr),

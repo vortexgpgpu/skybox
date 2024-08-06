@@ -13,9 +13,7 @@
 
 #include "opae_sim.h"
 
-#include <verilated.h>
 #include "Vvortex_afu_shim.h"
-#include "Vvortex_afu_shim__Syms.h"
 
 #ifdef VCD_OUTPUT
 #include <verilated_vcd_c.h>
@@ -109,7 +107,7 @@ public:
   , stop_(false)
   , host_buffer_ids_(0)
 #ifdef VCD_OUTPUT
-  , trace_(nullptr)
+  , tfp_(nullptr)
 #endif
   {}
 
@@ -122,9 +120,9 @@ public:
       aligned_free(buffer.second.data);
     }
   #ifdef VCD_OUTPUT
-    if (trace_) {
-      trace_->close();
-      delete trace_;
+    if (tfp_) {
+      tfp_->close();
+      delete tfp_;
     }
   #endif
     if (device_) {
@@ -136,22 +134,22 @@ public:
   }
 
   int init() {
-    // create RTL module instance
-    device_ = new Vvortex_afu_shim();
-    
-  #ifdef VCD_OUTPUT
-    Verilated::traceEverOn(true);
-    trace_ = new VerilatedVcdC();
-    device_->trace(trace_, 99);
-    trace_->open("trace.vcd");
-  #endif
-
     // force random values for unitialized signals
     Verilated::randReset(VERILATOR_RESET_VALUE);
     Verilated::randSeed(50);
 
     // turn off assertion before reset
     Verilated::assertOn(false);
+
+    // create RTL module instance
+    device_ = new Vvortex_afu_shim();
+
+  #ifdef VCD_OUTPUT
+    Verilated::traceEverOn(true);
+    tfp_ = new VerilatedVcdC();
+    device_->trace(tfp_, 99);
+    tfp_->open("trace.vcd");
+  #endif
 
     ram_ = new RAM(0, RAM_PAGE_SIZE);
 
@@ -318,7 +316,7 @@ private:
     device_->eval();
   #ifdef VCD_OUTPUT
     if (sim_trace_enabled()) {
-      trace_->dump(timestamp);
+      tfp_->dump(timestamp);
     }
   #endif
     ++timestamp;
@@ -382,7 +380,7 @@ private:
       device_->vcp2af_sRxPort_c0_hdr_resp_type = 0;
       memcpy(device_->vcp2af_sRxPort_c0_data, cci_rd_it->data.data(), CACHE_BLOCK_SIZE);
       device_->vcp2af_sRxPort_c0_hdr_mdata = cci_rd_it->mdata;
-      /*printf("%0ld: [sim] CCI Rd Rsp: addr=%ld, mdata=%d, data=", timestamp, cci_rd_it->addr, cci_rd_it->mdata);
+      /*printf("%0ld: [sim] CCI Rd Rsp: addr=0x%lx, mdata=0x%x, data=0x", timestamp, cci_rd_it->addr, cci_rd_it->mdata);
       for (int i = 0; i < CACHE_BLOCK_SIZE; ++i)
         printf("%02x", cci_rd_it->data[CACHE_BLOCK_SIZE-1-i]);
       printf("\n");*/
@@ -400,7 +398,7 @@ private:
       cci_req.mdata = device_->af2cp_sTxPort_c0_hdr_mdata;
       auto host_ptr = (uint64_t*)(device_->af2cp_sTxPort_c0_hdr_address * CACHE_BLOCK_SIZE);
       memcpy(cci_req.data.data(), host_ptr, CACHE_BLOCK_SIZE);
-      //printf("%0ld: [sim] CCI Rd Req: addr=%ld, mdata=%d\n", timestamp, device_->af2cp_sTxPort_c0_hdr_address, cci_req.mdata);
+      //printf("%0ld: [sim] CCI Rd Req: addr=0x%lx, mdata=0x%x\n", timestamp, device_->af2cp_sTxPort_c0_hdr_address, cci_req.mdata);
       cci_reads_.emplace_back(cci_req);
     }
 
@@ -455,7 +453,7 @@ private:
           }
         }
 
-        /*printf("%0ld: [sim] MEM Wr Req: bank=%d, addr=%x, data=", timestamp, b, byte_addr);
+        /*printf("%0ld: [sim] MEM Wr Req: bank=%d, 0x%x, data=0x", timestamp, b, byte_addr);
         for (int i = 0; i < MEM_BLOCK_SIZE; i++) {
           printf("%02x", data[(MEM_BLOCK_SIZE-1)-i]);
         }
@@ -542,7 +540,7 @@ private:
   std::queue<mem_req_t*> dram_queue_;
 
 #ifdef VCD_OUTPUT
-  VerilatedVcdC *trace_;
+  VerilatedVcdC *tfp_;
 #endif
 };
 

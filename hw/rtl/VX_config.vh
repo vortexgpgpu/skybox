@@ -607,6 +607,11 @@
 `define DCACHE_NUM_WAYS 1
 `endif
 
+// Enable Cache Writeback
+`ifndef DCACHE_WRITEBACK
+`define DCACHE_WRITEBACK 0
+`endif
+
 // LMEM Configurable Knobs ////////////////////////////////////////////////////
 
 `ifndef LMEM_DISABLE
@@ -828,6 +833,11 @@
 `define L2_NUM_WAYS 2
 `endif
 
+// Enable Cache Writeback
+`ifndef L2_WRITEBACK
+`define L2_WRITEBACK 0
+`endif
+
 // L3cache Configurable Knobs /////////////////////////////////////////////////
 
 // Cache Size
@@ -867,6 +877,11 @@
 // Number of Associative Ways
 `ifndef L3_NUM_WAYS
 `define L3_NUM_WAYS 4
+`endif
+
+// Enable Cache Writeback
+`ifndef L3_WRITEBACK
+`define L3_WRITEBACK 0
 `endif
 
 // ISA Extensions /////////////////////////////////////////////////////////////
