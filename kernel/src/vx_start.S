@@ -13,6 +13,7 @@
 
 #include <VX_config.h>
 #include <VX_types.h>
+#include <newlib.h>
 #include "common.h"
 
 .section .init, "ax"
@@ -52,8 +53,8 @@ _start:
   # csrw mtvec, t0
 
 #ifdef HAVE_INITFINI_ARRAY
-  # run global initialization functions
-  call  __libc_init_array
+    # run global initialization functions
+    call  __libc_init_array
 #endif
 
   # call main program routine
