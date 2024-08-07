@@ -77,10 +77,18 @@ source ./ci/toolchain_env.sh
 ```sh
 make -s
 ```
-### Quick demo running vecadd OpenCL kernel on 2 cores
+### Quick demo rendering a 3D scene using 2 cores
+
+<p align="center">
+  <a href="docs/assets/img/tekkaman_1024x1024.png">
+    <img src="docs/assets/img/tekkaman_1024x1024.png" alt="output" width=256/>
+  </a>
+</p>
+
 ```sh
-./ci/blackbox.sh --cores=2 --app=vecadd
+CONFIGS="-DEXT_GFX_ENABLE" ./ci/blackbox.sh --driver=simx --app=draw3d --args="-ttekkaman.cgltrace -w256 -h256" --cores=2
 ```
+The generated image will be written to <span style="color: yellow;">tests/regression/draw3d/output.png</span>
 
 ### Common Developer Tips
 - Installing Vortex kernel and runtime libraries to use with external tools requires passing --prefix=<install-path> to the configure script.
