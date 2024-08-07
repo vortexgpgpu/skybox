@@ -73,7 +73,7 @@ module VX_stream_arb #(
                 );
             end
 
-        end else if (MAX_FANOUT != 0 && (NUM_INPUTS > MAX_FANOUT)) begin
+        end else if (MAX_FANOUT != 0 && (NUM_INPUTS > (MAX_FANOUT + MAX_FANOUT /2))) begin
 
             // (#inputs > max_fanout) and (#outputs == 1)
 
@@ -174,16 +174,8 @@ module VX_stream_arb #(
             );
 
             assign valid_in_r = arb_valid;
+            assign data_in_r  = data_in[arb_index];
             assign arb_ready  = ready_in_r;
-
-            VX_onehot_mux #(
-                .DATAW (DATAW),
-                .N     (NUM_REQS)
-            ) onehot_mux (
-                .data_in  (data_in),
-                .sel_in   (arb_onehot),
-                .data_out (data_in_r)
-            );
 
             for (genvar i = 0; i < NUM_REQS; ++i) begin
                 assign ready_in[i] = ready_in_r && arb_onehot[i];
@@ -245,7 +237,7 @@ module VX_stream_arb #(
                 end
             end
 
-        end else if (MAX_FANOUT != 0 && (NUM_OUTPUTS > MAX_FANOUT)) begin
+        end else if (MAX_FANOUT != 0 && (NUM_OUTPUTS > (MAX_FANOUT + MAX_FANOUT /2))) begin
 
             // (#inputs == 1) and (#outputs > max_fanout)
 
@@ -357,9 +349,9 @@ module VX_stream_arb #(
 
         // #Inputs == #Outputs
 
-        for (genvar i = 0; i < NUM_OUTPUTS; ++i) begin
+        `RESET_RELAY_EX (out_buf_reset, reset, NUM_OUTPUTS, `MAX_FANOUT);
 
-            `RESET_RELAY_EN (out_buf_reset, reset, (NUM_OUTPUTS > 1));
+        for (genvar i = 0; i < NUM_OUTPUTS; ++i) begin
 
             VX_elastic_buffer #(
                 .DATAW   (DATAW),
@@ -368,7 +360,7 @@ module VX_stream_arb #(
                 .LUTRAM  (LUTRAM)
             ) out_buf (
                 .clk       (clk),
-                .reset     (out_buf_reset),
+                .reset     (out_buf_reset[i]),
                 .valid_in  (valid_in[i]),
                 .ready_in  (ready_in[i]),
                 .data_in   (data_in[i]),
